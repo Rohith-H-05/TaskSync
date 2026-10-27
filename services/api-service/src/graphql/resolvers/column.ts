@@ -8,13 +8,13 @@ import { invalidateBoardCache } from '../../lib/cache';
 
 const createColumnSchema = z.object({
   boardId: z.string().uuid(),
-  title: z.string().min(1, 'Column title is required').trim(),
+  title: z.string().trim().min(1, 'Column title is required'),
   position: z.number()
 });
 
 const updateColumnSchema = z.object({
   id: z.string().uuid(),
-  title: z.string().min(1, 'Column title is required').trim()
+  title: z.string().trim().min(1, 'Column title is required')
 });
 
 const moveColumnSchema = z.object({

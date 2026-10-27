@@ -13,6 +13,10 @@ export default defineConfig({
         ws: true
       }
     }
+  },
+  // @ts-expect-error vitest config
+  test: {
+    include: ['src/**/*.{test,spec}.{ts,tsx}']
   }
 });
 

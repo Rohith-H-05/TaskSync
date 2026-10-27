@@ -5,7 +5,7 @@ import { requireAuth, requireWorkspaceRole } from '../../auth/rbac';
 import { createGraphQLError, ErrorCode } from '../../lib/errors';
 
 const createWorkspaceSchema = z.object({
-  name: z.string().min(1, 'Workspace name is required').trim()
+  name: z.string().trim().min(1, 'Workspace name is required')
 });
 
 const addMemberSchema = z.object({

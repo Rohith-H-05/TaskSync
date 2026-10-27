@@ -7,13 +7,13 @@ import { getCachedBoard, setCachedBoard, invalidateBoardCache } from '../../lib/
 
 const createBoardSchema = z.object({
   workspaceId: z.string().uuid(),
-  title: z.string().min(1, 'Board title is required').trim(),
+  title: z.string().trim().min(1, 'Board title is required'),
   description: z.string().optional()
 });
 
 const updateBoardSchema = z.object({
   id: z.string().uuid(),
-  title: z.string().min(1).trim().optional(),
+  title: z.string().trim().min(1).optional(),
   description: z.string().optional().nullable()
 });
 

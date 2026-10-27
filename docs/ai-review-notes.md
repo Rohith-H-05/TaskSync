@@ -73,6 +73,15 @@ This document records architectural critiques, edge cases, bugs, or design overs
   2. Fixed dotenv loading paths in benchmark scripts to reliably resolve the project root configuration.
 - **Status**: Resolved and validated in [docs/benchmarks.md](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/docs/benchmarks.md).
 
+---
+
+### Entry 008: Zod Whitespace Validation Order of Operations (Phase 6)
+- **Component**: Input Validation Schemas across all resolvers (`createTaskSchema`, `createBoardSchema`, `createWorkspaceSchema`, `createColumnSchema`)
+- **Initial Setup**: Input string fields defined with `.min(1).trim()`.
+- **Problem Identified**: In Zod method chaining, order of operations matters. `.min(1).trim()` verifies that the un-trimmed string length is `>= 1` *before* trimming whitespace. As a result, whitespace-only strings like `"   "` had length 3, passed the `.min(1)` check, were trimmed to empty string `""`, and slipped past validation into the database.
+- **Resolution**: Reordered schema calls to `.trim().min(1, '...')` across all entities so input strings are stripped of leading/trailing whitespace prior to evaluating minimum character length. Added unit tests in `tests/unit/workspace_resolver.unit.test.ts` and `tests/unit/task_resolver.unit.test.ts` to assert rejection of whitespace-only strings.
+- **Status**: Fixed and verified across all mutation resolvers.
+
 
 
 

@@ -9,7 +9,7 @@ import { invalidateBoardCache } from '../../lib/cache';
 const createTaskSchema = z.object({
   boardId: z.string().uuid(),
   columnId: z.string().uuid(),
-  title: z.string().min(1, 'Task title is required').trim(),
+  title: z.string().trim().min(1, 'Task title is required'),
   description: z.string().optional().nullable(),
   assigneeId: z.string().uuid().optional().nullable(),
   dueDate: z.string().datetime().optional().nullable(),
@@ -18,7 +18,7 @@ const createTaskSchema = z.object({
 
 const updateTaskSchema = z.object({
   id: z.string().uuid(),
-  title: z.string().min(1).trim().optional(),
+  title: z.string().trim().min(1).optional(),
   description: z.string().optional().nullable(),
   assigneeId: z.string().uuid().optional().nullable(),
   dueDate: z.string().datetime().optional().nullable()
