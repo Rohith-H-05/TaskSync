@@ -10,7 +10,11 @@ COPY apps/web/package*.json ./apps/web/
 RUN npm install
 
 COPY services/notification-service ./services/notification-service
+COPY services/api-service/prisma ./services/api-service/prisma
 COPY tsconfig.json ./
+
+# Generate Prisma Client from api-service schema
+RUN npx prisma generate --schema=./services/api-service/prisma/schema.prisma
 
 WORKDIR /app/services/notification-service
 RUN npm run build
@@ -25,9 +29,10 @@ COPY package*.json ./
 COPY services/notification-service/package*.json ./services/notification-service/
 RUN npm install --omit=dev --workspace=@tasksync/notification-service
 
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/services/notification-service/dist ./services/notification-service/dist
 
 WORKDIR /app/services/notification-service
 
 CMD ["node", "dist/index.js"]
-

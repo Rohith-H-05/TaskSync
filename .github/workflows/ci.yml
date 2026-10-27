@@ -1,0 +1,124 @@
+name: TaskSync CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test-and-build:
+    name: Test & Build (Node 20)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_password
+          POSTGRES_DB: tasksync_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres_password@localhost:5432/tasksync_db?schema=public
+      REDIS_URL: redis://localhost:6379
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      JWT_SECRET: super_secret_jwt_key_min_32_characters_for_tasksync_dev
+      JWT_EXPIRES_IN: 7d
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate -w @tasksync/api-service
+
+      - name: Push Database Schema to PostgreSQL
+        run: npx prisma db push --schema=services/api-service/prisma/schema.prisma
+
+      - name: Type-Check & Build All Workspaces
+        run: npm run build --workspaces
+
+      - name: Run API Service Test Suite (Unit & Integration)
+        run: npm test -w @tasksync/api-service
+
+      - name: Run Web Application Unit Tests
+        run: npm test -w @tasksync/web
+
+  docker-build:
+    name: Docker Container Image Builds
+    runs-on: ubuntu-latest
+    needs: test-and-build
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API Service Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/api-service/Dockerfile
+          push: false
+          tags: tasksync-api-service:latest
+
+      - name: Build Notification Service Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/notification-service/Dockerfile
+          push: false
+          tags: tasksync-notification-service:latest
+
+      - name: Build Web Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          tags: tasksync-web:latest
+
+  deploy-check:
+    name: Deployment Readiness Check
+    runs-on: ubuntu-latest
+    needs: [test-and-build, docker-build]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - name: Deployment Notice
+        run: |
+          echo "=========================================================="
+          echo "✅ All tests passed and Docker containers verified."
+          echo "🚀 TaskSync is ready for EC2 automated deployment via Terraform."
+          echo "=========================================================="

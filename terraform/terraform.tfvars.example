@@ -1,0 +1,6 @@
+# Example Terraform configuration for TaskSync
+aws_region       = "us-east-1"
+environment      = "production"
+instance_type    = "t3.small"
+ssh_key_name     = "my-aws-key-pair"
+allowed_ssh_cidr = "0.0.0.0/0"

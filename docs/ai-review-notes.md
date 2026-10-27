@@ -82,6 +82,15 @@ This document records architectural critiques, edge cases, bugs, or design overs
 - **Resolution**: Reordered schema calls to `.trim().min(1, '...')` across all entities so input strings are stripped of leading/trailing whitespace prior to evaluating minimum character length. Added unit tests in `tests/unit/workspace_resolver.unit.test.ts` and `tests/unit/task_resolver.unit.test.ts` to assert rejection of whitespace-only strings.
 - **Status**: Fixed and verified across all mutation resolvers.
 
+---
+
+### Entry 009: Missing Prisma Client Generation in Worker Dockerfile (Phase 7)
+- **Component**: Docker Container Build (`services/notification-service/Dockerfile`)
+- **Initial Setup**: The `notification-service` Dockerfile copied its local package manifests and ran `npm install` and `npm run build` without copying the Prisma schema or invoking `prisma generate`.
+- **Problem Identified**: The TypeScript compiler failed during image creation with `TS2305: Module '"@prisma/client"' has no exported member 'TaskAction'`, because `@prisma/client` defaults to an empty un-generated stub until `prisma generate` is explicitly executed against the schema.
+- **Resolution**: Updated `services/notification-service/Dockerfile` to copy `services/api-service/prisma` into the builder stage, run `npx prisma generate --schema=./services/api-service/prisma/schema.prisma`, and copy the generated `.prisma` and `@prisma` output directories into the final production runner stage.
+- **Status**: Tested and verified; all 3 Docker images build successfully.
+
 
 
 
