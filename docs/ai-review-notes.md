@@ -1,0 +1,27 @@
+# AI-vs-Reality Engineering Review Log
+
+This document records architectural critiques, edge cases, bugs, or design oversights caught during the design and implementation of TaskSync, along with their resolutions.
+
+---
+
+## Log Entries
+
+### Entry 001: Fractional Positioning Precision Decay (Phase 0 Design Review)
+- **Component**: Task & Column Reordering (`MoveTaskInput`, `MoveColumnInput`)
+- **Initial Assumption**: Using simple midpoint formula `pos = (posA + posB) / 2` with standard floating-point numbers indefinitely.
+- **Problem Identified**: IEEE-754 64-bit float precision has 53 bits of significand. If a user repeatedly drags cards between the same two adjacent items ~50 times, `posB - posA` drops below machine epsilon, causing collisions where distinct tasks receive identical positions.
+- **Resolution**:
+  1. Use double precision float with initial spacing interval of `1000.0`.
+  2. Implement an automated rebalance trigger: if `abs(posB - posA) < 1e-6`, trigger a background non-blocking rebalancing transaction for that column (`position = (index + 1) * 1000.0`).
+- **Status**: Incorporated into [docs/design.md](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/docs/design.md).
+
+---
+
+### Entry 002: At-Most-Once Delivery in Redis Pub/Sub (Phase 0 Design Review)
+- **Component**: Notification & Activity Feed Delivery (`task-events`)
+- **Initial Assumption**: Solely relying on standard Redis Pub/Sub for worker notification processing.
+- **Problem Identified**: Standard Redis Pub/Sub is fire-and-forget. If `notification-service` is temporarily down or restarting during deployment, events emitted during that downtime are permanently lost.
+- **Resolution**:
+  1. The core board state mutation is always committed durably to PostgreSQL first in `api-service`.
+  2. For critical activity feeds, either persist the `ActivityLog` in the main transaction or utilize Redis Streams (`XADD` with consumer groups) if workers require guaranteed at-least-once delivery.
+- **Status**: Documented as an interview trade-off in [docs/design.md](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/docs/design.md).
