@@ -122,3 +122,4 @@ jobs:
           echo "✅ All tests passed and Docker containers verified."
           echo "🚀 TaskSync is ready for EC2 automated deployment via Terraform."
           echo "=========================================================="
+

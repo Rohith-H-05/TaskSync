@@ -32,3 +32,4 @@ output "ssh_command" {
   description = "Command to connect via SSH"
   value       = "ssh -i <path-to-key.pem> ubuntu@${aws_instance.tasksync_server.public_ip}"
 }
+

@@ -174,3 +174,4 @@ resource "aws_instance" "tasksync_server" {
     Name = "tasksync-${var.environment}-server"
   }
 }
+

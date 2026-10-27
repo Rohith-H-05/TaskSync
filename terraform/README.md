@@ -77,3 +77,4 @@ To destroy all created resources and prevent unwanted AWS billing:
 ```bash
 terraform destroy
 ```
+
