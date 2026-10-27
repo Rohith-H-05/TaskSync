@@ -42,3 +42,4 @@ export function calculateFractionalPosition(
 
   return (prevPos + nextPos) / 2.0;
 }
+

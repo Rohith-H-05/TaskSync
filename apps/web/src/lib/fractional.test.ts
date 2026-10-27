@@ -75,3 +75,4 @@ describe('Fractional Positioning Algorithm Tests', () => {
     expect(pos).toBe(500.0);
   });
 });
+

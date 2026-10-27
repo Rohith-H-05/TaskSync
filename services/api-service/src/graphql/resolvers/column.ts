@@ -3,6 +3,7 @@ import { WorkspaceRole, Column } from '@prisma/client';
 import { GraphQLContext } from '../context';
 import { requireAuth, requireBoardAccess } from '../../auth/rbac';
 import { createGraphQLError, ErrorCode } from '../../lib/errors';
+import { emitBoardEvent, BoardEventType } from '../../lib/pubsub';
 
 const createColumnSchema = z.object({
   boardId: z.string().uuid(),
@@ -52,6 +53,20 @@ export const columnResolvers = {
         }
       });
 
+      const actorUser = await ctx.loaders.userLoader.load(authUser.userId);
+      emitBoardEvent({
+        type: BoardEventType.COLUMN_CREATED,
+        boardId,
+        columnId: column.id,
+        column,
+        actor: {
+          id: authUser.userId,
+          email: authUser.email,
+          name: actorUser?.name || authUser.email
+        },
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
+
       return column;
     },
 
@@ -89,6 +104,20 @@ export const columnResolvers = {
         data: { title }
       });
 
+      const actorUser = await ctx.loaders.userLoader.load(authUser.userId);
+      emitBoardEvent({
+        type: BoardEventType.COLUMN_UPDATED,
+        boardId: column.boardId,
+        columnId: id,
+        column: updated,
+        actor: {
+          id: authUser.userId,
+          email: authUser.email,
+          name: actorUser?.name || authUser.email
+        },
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
+
       return updated;
     },
 
@@ -115,6 +144,19 @@ export const columnResolvers = {
       await ctx.prisma.column.delete({
         where: { id: args.id }
       });
+
+      const actorUser = await ctx.loaders.userLoader.load(authUser.userId);
+      emitBoardEvent({
+        type: BoardEventType.COLUMN_DELETED,
+        boardId: column.boardId,
+        columnId: args.id,
+        actor: {
+          id: authUser.userId,
+          email: authUser.email,
+          name: actorUser?.name || authUser.email
+        },
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
 
       return true;
     },
@@ -152,6 +194,20 @@ export const columnResolvers = {
         where: { id },
         data: { position: newPosition }
       });
+
+      const actorUser = await ctx.loaders.userLoader.load(authUser.userId);
+      emitBoardEvent({
+        type: BoardEventType.COLUMN_MOVED,
+        boardId: column.boardId,
+        columnId: id,
+        column: updated,
+        actor: {
+          id: authUser.userId,
+          email: authUser.email,
+          name: actorUser?.name || authUser.email
+        },
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
 
       return updated;
     }

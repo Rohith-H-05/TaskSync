@@ -3,6 +3,7 @@ import { WorkspaceRole, Task, Prisma } from '@prisma/client';
 import { GraphQLContext } from '../context';
 import { requireAuth, requireBoardAccess } from '../../auth/rbac';
 import { createGraphQLError, ErrorCode } from '../../lib/errors';
+import { emitBoardEvent, BoardEventType } from '../../lib/pubsub';
 
 const createTaskSchema = z.object({
   boardId: z.string().uuid(),
@@ -204,6 +205,21 @@ export const taskResolvers = {
         }
       });
 
+      const actorUser = await ctx.loaders.userLoader.load(authUser.userId);
+      emitBoardEvent({
+        type: BoardEventType.TASK_CREATED,
+        boardId,
+        columnId,
+        taskId: task.id,
+        task,
+        actor: {
+          id: authUser.userId,
+          email: authUser.email,
+          name: actorUser?.name || authUser.email
+        },
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
+
       return task;
     },
 
@@ -246,6 +262,21 @@ export const taskResolvers = {
         }
       });
 
+      const actorUser = await ctx.loaders.userLoader.load(authUser.userId);
+      emitBoardEvent({
+        type: BoardEventType.TASK_UPDATED,
+        boardId: existingTask.boardId,
+        columnId: existingTask.columnId,
+        taskId: id,
+        task: updated,
+        actor: {
+          id: authUser.userId,
+          email: authUser.email,
+          name: actorUser?.name || authUser.email
+        },
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
+
       return updated;
     },
 
@@ -272,6 +303,20 @@ export const taskResolvers = {
       await ctx.prisma.task.delete({
         where: { id: args.id }
       });
+
+      const actorUser = await ctx.loaders.userLoader.load(authUser.userId);
+      emitBoardEvent({
+        type: BoardEventType.TASK_DELETED,
+        boardId: existingTask.boardId,
+        columnId: existingTask.columnId,
+        taskId: args.id,
+        actor: {
+          id: authUser.userId,
+          email: authUser.email,
+          name: actorUser?.name || authUser.email
+        },
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
 
       return true;
     },
@@ -313,6 +358,21 @@ export const taskResolvers = {
           position: newPosition
         }
       });
+
+      const actorUser = await ctx.loaders.userLoader.load(authUser.userId);
+      emitBoardEvent({
+        type: BoardEventType.TASK_MOVED,
+        boardId: existingTask.boardId,
+        columnId: targetColumnId,
+        taskId: id,
+        task: updated,
+        actor: {
+          id: authUser.userId,
+          email: authUser.email,
+          name: actorUser?.name || authUser.email
+        },
+        timestamp: new Date().toISOString()
+      }).catch(console.error);
 
       // Background rebalance check if float gap is critically narrow
       checkAndRebalanceColumn(ctx.prisma, targetColumnId).catch((err) => {

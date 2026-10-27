@@ -3,6 +3,7 @@ import { workspaceResolvers } from './workspace';
 import { boardResolvers } from './board';
 import { columnResolvers } from './column';
 import { taskResolvers } from './task';
+import { activityResolvers } from './activity';
 
 export const resolvers = {
   Query: {
@@ -10,16 +11,7 @@ export const resolvers = {
     ...workspaceResolvers.Query,
     ...boardResolvers.Query,
     ...taskResolvers.Query,
-    boardActivity: () => ({
-      edges: [],
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null
-      },
-      totalCount: 0
-    })
+    ...activityResolvers.Query
   },
 
   Mutation: {
@@ -30,10 +22,15 @@ export const resolvers = {
     ...taskResolvers.Mutation
   },
 
+  Subscription: {
+    ...activityResolvers.Subscription
+  },
+
   Workspace: workspaceResolvers.Workspace,
   WorkspaceMember: workspaceResolvers.WorkspaceMember,
   Board: boardResolvers.Board,
   Column: columnResolvers.Column,
-  Task: taskResolvers.Task
+  Task: taskResolvers.Task,
+  ActivityLog: activityResolvers.ActivityLog
 };
 

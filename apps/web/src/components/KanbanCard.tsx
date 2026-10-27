@@ -122,3 +122,4 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ task, canMutate, onDelet
     </div>
   );
 };
+

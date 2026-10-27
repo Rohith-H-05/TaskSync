@@ -181,3 +181,53 @@ export const DELETE_TASK_MUTATION = gql`
     deleteTask(id: $id)
   }
 `;
+
+export const BOARD_UPDATED_SUBSCRIPTION = gql`
+  subscription OnBoardUpdated($boardId: ID!) {
+    boardUpdated(boardId: $boardId) {
+      type
+      boardId
+      columnId
+      taskId
+      task {
+        ...TaskFields
+      }
+      column {
+        ...ColumnFields
+      }
+      actor {
+        ...UserFields
+      }
+      timestamp
+    }
+  }
+  ${TASK_FIELDS}
+  ${COLUMN_FIELDS}
+  ${USER_FIELDS}
+`;
+
+export const GET_BOARD_ACTIVITY_QUERY = gql`
+  query GetBoardActivity($boardId: ID!, $first: Int, $after: String) {
+    boardActivity(boardId: $boardId, first: $first, after: $after) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      edges {
+        cursor
+        node {
+          id
+          action
+          details
+          createdAt
+          user {
+            ...UserFields
+          }
+        }
+      }
+    }
+  }
+  ${USER_FIELDS}
+`;
+

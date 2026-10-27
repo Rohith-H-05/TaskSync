@@ -53,6 +53,16 @@ This document records architectural critiques, edge cases, bugs, or design overs
 - **Resolution**: Configured `activationConstraint: { distance: 5 }` on the `PointerSensor`. The drag lifecycle only initiates if the user moves the pointer by more than 5 pixels while holding the mouse button down, preserving regular click events.
 - **Status**: Implemented in [src/components/KanbanBoard.tsx](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/apps/web/src/components/KanbanBoard.tsx).
 
+---
+
+### Entry 006: Dual-PubSub Architecture for Subscriptions & Microservices (Phase 4)
+- **Component**: Real-Time Event Dispatch (`src/lib/pubsub.ts`)
+- **Initial Setup**: Attempting to route internal Apollo Server subscriptions through Redis Pub/Sub without an in-process fallback or dual-dispatch.
+- **Problem Identified**: If the Redis client drops connection or experiences transient reconnect backoff, internal WebSocket subscribers connected to the local Node process could fail to receive real-time UI updates even though the database write succeeded.
+- **Resolution**: Implemented `emitBoardEvent` as a dual-dispatch layer: it immediately emits to the local `PubSub` engine to guarantee immediate delivery to connected browser clients, while asynchronously publishing to the Redis `task-events` channel for the independent `notification-service` to log and notify.
+- **Status**: Implemented and verified in [src/lib/pubsub.ts](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/services/api-service/src/lib/pubsub.ts).
+
+
 
 
 

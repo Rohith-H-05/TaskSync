@@ -12,18 +12,20 @@ import {
   DragEndEvent
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { useMutation } from '@apollo/client';
+import { useMutation, useSubscription } from '@apollo/client';
 import { KanbanColumn, KanbanColumnItem } from './KanbanColumn';
 import { KanbanCard, KanbanTaskItem } from './KanbanCard';
+import { ActivityFeed } from './ActivityFeed';
 import { calculateFractionalPosition } from '../lib/fractional';
 import {
   MOVE_TASK_MUTATION,
   CREATE_TASK_MUTATION,
   DELETE_TASK_MUTATION,
   CREATE_COLUMN_MUTATION,
-  GET_BOARD_QUERY
+  GET_BOARD_QUERY,
+  BOARD_UPDATED_SUBSCRIPTION
 } from '../graphql/operations';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Activity } from 'lucide-react';
 
 interface KanbanBoardProps {
   board: {
@@ -42,11 +44,79 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ board, canMutate }) =>
   const [searchQuery, setSearchQuery] = useState('');
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [isAddingColumn, setIsAddingColumn] = useState(false);
+  const [isActivityFeedOpen, setIsActivityFeedOpen] = useState(false);
 
   // Sync columns if board prop updates
   React.useEffect(() => {
     setColumns(board.columns);
   }, [board.columns]);
+
+  // Real-Time GraphQL Subscription for multi-user synchronization
+  useSubscription(BOARD_UPDATED_SUBSCRIPTION, {
+    variables: { boardId: board.id },
+    onData: ({ data }) => {
+      const event = data.data?.boardUpdated;
+      if (!event) return;
+
+      setColumns((prevCols) => {
+        // Handle incoming real-time events
+        if (event.type === 'TASK_CREATED' && event.task) {
+          const newTask = event.task as KanbanTaskItem;
+          return prevCols.map((col) => {
+            if (col.id === newTask.columnId) {
+              if (col.tasks.some((t) => t.id === newTask.id)) return col;
+              return {
+                ...col,
+                tasks: [...col.tasks, newTask].sort((a, b) => a.position - b.position)
+              };
+            }
+            return col;
+          });
+        }
+
+        if (event.type === 'TASK_MOVED' && event.task) {
+          const movedTask = event.task as KanbanTaskItem;
+          // Remove from previous column and insert into new column
+          return prevCols.map((col) => {
+            if (col.id === movedTask.columnId) {
+              const existingIndex = col.tasks.findIndex((t) => t.id === movedTask.id);
+              let updatedTasks;
+              if (existingIndex >= 0) {
+                updatedTasks = col.tasks.map((t) => (t.id === movedTask.id ? movedTask : t));
+              } else {
+                updatedTasks = [...col.tasks, movedTask];
+              }
+              return {
+                ...col,
+                tasks: updatedTasks.sort((a, b) => a.position - b.position)
+              };
+            } else {
+              // Strip from other columns if it was moved across
+              return {
+                ...col,
+                tasks: col.tasks.filter((t) => t.id !== movedTask.id)
+              };
+            }
+          });
+        }
+
+        if (event.type === 'TASK_DELETED' && event.taskId) {
+          return prevCols.map((col) => ({
+            ...col,
+            tasks: col.tasks.filter((t) => t.id !== event.taskId)
+          }));
+        }
+
+        if (event.type === 'COLUMN_CREATED' && event.column) {
+          const newCol = event.column as KanbanColumnItem;
+          if (prevCols.some((c) => c.id === newCol.id)) return prevCols;
+          return [...prevCols, { ...newCol, tasks: [] }].sort((a, b) => a.position - b.position);
+        }
+
+        return prevCols;
+      });
+    }
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -284,6 +354,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ board, canMutate }) =>
             />
           </div>
 
+          <button
+            onClick={() => setIsActivityFeedOpen((prev) => !prev)}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+              isActivityFeedOpen
+                ? 'bg-cyan-950/80 border-cyan-800 text-cyan-400'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+            }`}
+            title="Toggle Activity Feed"
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>Activity</span>
+          </button>
+
           {canMutate && (
             <button
               onClick={() => setIsAddingColumn(true)}
@@ -372,6 +455,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ board, canMutate }) =>
           </DragOverlay>
         </DndContext>
       </div>
+
+      {/* Activity Feed Slide-over Drawer */}
+      <ActivityFeed
+        boardId={board.id}
+        isOpen={isActivityFeedOpen}
+        onClose={() => setIsActivityFeedOpen(false)}
+      />
     </div>
   );
 };
