@@ -4,6 +4,7 @@ import Redis from 'ioredis';
 import { prisma } from '../lib/prisma';
 import { redis, redisPublisher } from '../lib/redis';
 import { verifyToken, TokenPayload } from '../auth/jwt';
+import { createLoaders, DataLoaders } from './loaders';
 
 export interface GraphQLContext {
   req?: Request;
@@ -11,6 +12,7 @@ export interface GraphQLContext {
   redis: Redis;
   redisPublisher: Redis;
   user: TokenPayload | null;
+  loaders: DataLoaders;
 }
 
 export async function buildContext({ req }: { req?: Request }): Promise<GraphQLContext> {
@@ -29,6 +31,8 @@ export async function buildContext({ req }: { req?: Request }): Promise<GraphQLC
     prisma,
     redis,
     redisPublisher,
-    user
+    user,
+    loaders: createLoaders(prisma)
   };
 }
+

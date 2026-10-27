@@ -9,6 +9,7 @@ import { resolvers } from './graphql/resolvers';
 import { prisma } from './lib/prisma';
 import { redis, redisPublisher, redisSubscriber } from './lib/redis';
 import { verifyToken } from './auth/jwt';
+import { createLoaders } from './graphql/loaders';
 
 async function bootstrap() {
   try {
@@ -47,7 +48,8 @@ async function bootstrap() {
             prisma,
             redis,
             redisPublisher,
-            user
+            user,
+            loaders: createLoaders(prisma)
           };
         }
       },
@@ -83,3 +85,4 @@ async function bootstrap() {
 }
 
 bootstrap();
+

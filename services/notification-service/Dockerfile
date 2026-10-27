@@ -30,3 +30,4 @@ COPY --from=builder /app/services/notification-service/dist ./services/notificat
 WORKDIR /app/services/notification-service
 
 CMD ["node", "dist/index.js"]
+

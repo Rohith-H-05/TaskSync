@@ -26,3 +26,4 @@ export const redisSubscriber = new Redis(env.REDIS_URL, {
 redis.on('error', (err) => console.error('Redis Cache Client Error:', err.message));
 redisPublisher.on('error', (err) => console.error('Redis Publisher Client Error:', err.message));
 redisSubscriber.on('error', (err) => console.error('Redis Subscriber Client Error:', err.message));
+

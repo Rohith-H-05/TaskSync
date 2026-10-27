@@ -6,3 +6,4 @@ declare module 'graphql-depth-limit' {
     callback?: (depths: Record<string, number>) => void
   ): ValidationRule;
 }
+

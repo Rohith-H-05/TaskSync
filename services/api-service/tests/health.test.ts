@@ -45,3 +45,4 @@ describe('Health Endpoints Tests', () => {
     });
   });
 });
+

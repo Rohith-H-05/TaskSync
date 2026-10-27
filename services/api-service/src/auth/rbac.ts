@@ -69,3 +69,4 @@ export async function requireBoardAccess(
   const membership = await requireWorkspaceRole(board.workspaceId, userId, allowedRoles);
   return { board, membership };
 }
+

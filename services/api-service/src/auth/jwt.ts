@@ -21,3 +21,4 @@ export function verifyToken(token: string): TokenPayload | null {
     return null;
   }
 }
+

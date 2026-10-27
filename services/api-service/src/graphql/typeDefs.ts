@@ -262,3 +262,4 @@ export const typeDefs = gql`
     boardUpdated(boardId: ID!): BoardEvent!
   }
 `;
+

@@ -35,4 +35,14 @@ This document records architectural critiques, edge cases, bugs, or design overs
 - **Resolution**: Ensured each service contains its local `.env` configuration (derived safely from `.env.example`) and added dotenv fallback resolution in `src/lib/env.ts`.
 - **Status**: Resolved and tested with live PostgreSQL container.
 
+---
+
+### Entry 004: Request-Scoped DataLoaders vs Global Singletons (Phase 2)
+- **Component**: DataLoader Batching Engine (`src/graphql/loaders.ts`, `src/graphql/context.ts`)
+- **Common Anti-Pattern**: Instantiating DataLoader instances once at server startup as global singletons.
+- **Problem Identified**: DataLoader caches promise results in-memory. If instantiated globally across requests, User A could read stale or unauthorized cached data loaded during User B's prior request, causing data leaks and cross-request stale cache bugs.
+- **Resolution**: `createLoaders(prisma)` is called inside `buildContext` on every incoming GraphQL HTTP request and WebSocket connection tick. The DataLoader memoization cache lives strictly for the duration of a single GraphQL query execution tick and is immediately garbage collected.
+- **Status**: Implemented and verified in [src/graphql/context.ts](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/services/api-service/src/graphql/context.ts).
+
+
 
