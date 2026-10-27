@@ -145,3 +145,4 @@ describe('Activity Feed & Redis Pub/Sub Integration Tests', () => {
     expect(data2.edges[0].node.id).not.toBe(data1.edges[0].node.id);
   });
 });
+

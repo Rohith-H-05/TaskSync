@@ -151,3 +151,4 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ boardId, isOpen, onC
     </div>
   );
 };
+

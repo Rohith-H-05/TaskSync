@@ -4,6 +4,7 @@ import { GraphQLContext } from '../context';
 import { requireAuth, requireBoardAccess } from '../../auth/rbac';
 import { createGraphQLError, ErrorCode } from '../../lib/errors';
 import { emitBoardEvent, BoardEventType } from '../../lib/pubsub';
+import { invalidateBoardCache } from '../../lib/cache';
 
 const createTaskSchema = z.object({
   boardId: z.string().uuid(),
@@ -220,6 +221,9 @@ export const taskResolvers = {
         timestamp: new Date().toISOString()
       }).catch(console.error);
 
+      // Invalidate board cache: new task affects board aggregate state
+      invalidateBoardCache(boardId).catch(console.error);
+
       return task;
     },
 
@@ -277,6 +281,8 @@ export const taskResolvers = {
         timestamp: new Date().toISOString()
       }).catch(console.error);
 
+      invalidateBoardCache(existingTask.boardId).catch(console.error);
+
       return updated;
     },
 
@@ -317,6 +323,8 @@ export const taskResolvers = {
         },
         timestamp: new Date().toISOString()
       }).catch(console.error);
+
+      invalidateBoardCache(existingTask.boardId).catch(console.error);
 
       return true;
     },
@@ -373,6 +381,9 @@ export const taskResolvers = {
         },
         timestamp: new Date().toISOString()
       }).catch(console.error);
+
+      // Invalidate board cache after every task move
+      invalidateBoardCache(existingTask.boardId).catch(console.error);
 
       // Background rebalance check if float gap is critically narrow
       checkAndRebalanceColumn(ctx.prisma, targetColumnId).catch((err) => {

@@ -3,6 +3,7 @@ import { WorkspaceRole, Board } from '@prisma/client';
 import { GraphQLContext } from '../context';
 import { requireAuth, requireWorkspaceRole, requireBoardAccess } from '../../auth/rbac';
 import { createGraphQLError, ErrorCode } from '../../lib/errors';
+import { getCachedBoard, setCachedBoard, invalidateBoardCache } from '../../lib/cache';
 
 const createBoardSchema = z.object({
   workspaceId: z.string().uuid(),
@@ -28,6 +29,16 @@ export const boardResolvers = {
         WorkspaceRole.VIEWER
       ]);
 
+      // ── Cache-Aside Read ──────────────────────────────────────────────────────
+      // 1. Check Redis for cached board aggregate (key: board:{id})
+      const cacheHit = await getCachedBoard<Board>(args.id);
+      if (cacheHit) {
+        console.log(`[Cache] HIT  board:${args.id}`);
+        return cacheHit;
+      }
+      console.log(`[Cache] MISS board:${args.id} — querying Postgres`);
+
+      // 2. Cache MISS → fetch from Postgres via Prisma
       const board = await ctx.prisma.board.findUnique({
         where: { id: args.id }
       });
@@ -35,6 +46,9 @@ export const boardResolvers = {
       if (!board) {
         throw createGraphQLError('Board not found', ErrorCode.NOT_FOUND);
       }
+
+      // 3. Hydrate cache for subsequent requests (fire-and-forget, non-blocking)
+      setCachedBoard(args.id, board).catch(console.error);
 
       return board;
     }
@@ -85,6 +99,7 @@ export const boardResolvers = {
         return newBoard;
       });
 
+      // No cache to invalidate on create — new board has no cache entry yet
       return board;
     },
 
@@ -118,6 +133,9 @@ export const boardResolvers = {
         }
       });
 
+      // Invalidate Redis cache — board metadata changed
+      invalidateBoardCache(id).catch(console.error);
+
       return updated;
     },
 
@@ -137,6 +155,9 @@ export const boardResolvers = {
       await ctx.prisma.board.delete({
         where: { id: args.id }
       });
+
+      // Invalidate Redis cache — board deleted
+      invalidateBoardCache(args.id).catch(console.error);
 
       return true;
     }

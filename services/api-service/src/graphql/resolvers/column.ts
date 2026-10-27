@@ -4,6 +4,7 @@ import { GraphQLContext } from '../context';
 import { requireAuth, requireBoardAccess } from '../../auth/rbac';
 import { createGraphQLError, ErrorCode } from '../../lib/errors';
 import { emitBoardEvent, BoardEventType } from '../../lib/pubsub';
+import { invalidateBoardCache } from '../../lib/cache';
 
 const createColumnSchema = z.object({
   boardId: z.string().uuid(),
@@ -67,6 +68,9 @@ export const columnResolvers = {
         timestamp: new Date().toISOString()
       }).catch(console.error);
 
+      // Invalidate board cache — column structure changed
+      invalidateBoardCache(boardId).catch(console.error);
+
       return column;
     },
 
@@ -118,6 +122,8 @@ export const columnResolvers = {
         timestamp: new Date().toISOString()
       }).catch(console.error);
 
+      invalidateBoardCache(column.boardId).catch(console.error);
+
       return updated;
     },
 
@@ -157,6 +163,8 @@ export const columnResolvers = {
         },
         timestamp: new Date().toISOString()
       }).catch(console.error);
+
+      invalidateBoardCache(column.boardId).catch(console.error);
 
       return true;
     },
@@ -208,6 +216,8 @@ export const columnResolvers = {
         },
         timestamp: new Date().toISOString()
       }).catch(console.error);
+
+      invalidateBoardCache(column.boardId).catch(console.error);
 
       return updated;
     }

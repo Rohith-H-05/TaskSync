@@ -17,6 +17,7 @@
     "@apollo/server": "^4.11.3",
     "@graphql-tools/schema": "^10.1.5",
     "@prisma/client": "^5.22.0",
+    "autocannon": "^8.0.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dataloader": "^2.2.3",

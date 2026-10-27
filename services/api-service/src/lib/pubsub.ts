@@ -49,3 +49,4 @@ export async function emitBoardEvent(event: BoardEventPayload): Promise<void> {
     console.error('Failed to publish event to Redis channel task-events:', err);
   }
 }
+

@@ -62,6 +62,17 @@ This document records architectural critiques, edge cases, bugs, or design overs
 - **Resolution**: Implemented `emitBoardEvent` as a dual-dispatch layer: it immediately emits to the local `PubSub` engine to guarantee immediate delivery to connected browser clients, while asynchronously publishing to the Redis `task-events` channel for the independent `notification-service` to log and notify.
 - **Status**: Implemented and verified in [src/lib/pubsub.ts](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/services/api-service/src/lib/pubsub.ts).
 
+---
+
+### Entry 007: JWT Secret Inconsistency Between Runtime Services and Scripts (Phase 5)
+- **Component**: Authentication & Benchmark Scripts (`scripts/seed-benchmark.mjs`, `.env`)
+- **Initial Setup**: Root `.env` contained a sample JWT token string as `JWT_SECRET` (`eyJhbGci...`), while fallback defaults in scripts used a standard plaintext secret string (`super_secret_jwt_key_...`).
+- **Problem Identified**: When running the API server and standalone benchmark seeding scripts, path resolution differences caused the seeder script to fall back to the default secret while the server verified tokens using the `.env` value. This caused automated benchmark requests to fail with `UNAUTHENTICATED` ("Authentication required. Please provide a valid Bearer token.").
+- **Resolution**:
+  1. Synchronized the `JWT_SECRET` across root `.env` and `services/api-service/.env` to use the unified standard secret.
+  2. Fixed dotenv loading paths in benchmark scripts to reliably resolve the project root configuration.
+- **Status**: Resolved and validated in [docs/benchmarks.md](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/docs/benchmarks.md).
+
 
 
 
