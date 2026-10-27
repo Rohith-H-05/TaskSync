@@ -25,3 +25,14 @@ This document records architectural critiques, edge cases, bugs, or design overs
   1. The core board state mutation is always committed durably to PostgreSQL first in `api-service`.
   2. For critical activity feeds, either persist the `ActivityLog` in the main transaction or utilize Redis Streams (`XADD` with consumer groups) if workers require guaranteed at-least-once delivery.
 - **Status**: Documented as an interview trade-off in [docs/design.md](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/docs/design.md).
+
+---
+
+### Entry 003: Monorepo Prisma CLI Environment Resolution (Phase 1)
+- **Component**: Prisma CLI migrations in npm workspaces
+- **Initial Setup**: Relying on root `.env` for sub-package `prisma db push` invocations without explicitly copying or passing path flags.
+- **Problem Identified**: The Prisma CLI searches the directory containing `schema.prisma` (`services/api-service`) for `.env` by default and threw error `P1012: Environment variable not found: DATABASE_URL`.
+- **Resolution**: Ensured each service contains its local `.env` configuration (derived safely from `.env.example`) and added dotenv fallback resolution in `src/lib/env.ts`.
+- **Status**: Resolved and tested with live PostgreSQL container.
+
+

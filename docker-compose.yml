@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tasksync-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      POSTGRES_DB: ${POSTGRES_DB:-tasksync_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tasksync_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tasksync-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: tasksync-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tasksync-network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: tasksync-mailpit
+    restart: unless-stopped
+    ports:
+      - "${SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_WEB_PORT:-8025}:8025"
+    networks:
+      - tasksync-network
+
+  api-service:
+    build:
+      context: .
+      dockerfile: services/api-service/Dockerfile
+    container_name: tasksync-api-service
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4000}:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password}@postgres:5432/${POSTGRES_DB:-tasksync_db}?schema=public"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: "redis://redis:6379"
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_min_32_characters_for_tasksync_dev}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tasksync-network
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: tasksync-notification-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password}@postgres:5432/${POSTGRES_DB:-tasksync_db}?schema=public"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: "redis://redis:6379"
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: ${SMTP_FROM:-"TaskSync <noreply@tasksync.local>"}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    networks:
+      - tasksync-network
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: tasksync-web
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - api-service
+    networks:
+      - tasksync-network
+
+networks:
+  tasksync-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

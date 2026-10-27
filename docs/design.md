@@ -700,3 +700,4 @@ With DataLoader:
 2. `TaskLoader`: Batches task fetching by column IDs:
    `SELECT * FROM "Task" WHERE "columnId" IN ($col1, $col2, ...)` (1 single query).
 Total queries reduced from **107 to 3**.
+

@@ -1,0 +1,23 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY services/api-service/package*.json ./services/api-service/
+COPY services/notification-service/package*.json ./services/notification-service/
+COPY apps/web/package*.json ./apps/web/
+
+RUN npm install
+
+COPY apps/web ./apps/web
+
+WORKDIR /app/apps/web
+RUN npm run build
+
+FROM nginx:alpine AS runner
+
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

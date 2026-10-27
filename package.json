@@ -1,0 +1,30 @@
+{
+  "name": "tasksync-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time collaborative Kanban board monorepo",
+  "workspaces": [
+    "services/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "kanban",
+    "graphql",
+    "react",
+    "apollo",
+    "redis",
+    "docker",
+    "prisma"
+  ],
+  "author": "",
+  "license": "MIT"
+}
