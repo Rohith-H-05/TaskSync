@@ -72,7 +72,7 @@ export const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
             <button
               type="submit"
               disabled={!name.trim() || loading}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-medium rounded-lg shadow-md transition disabled:opacity-50"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? 'Creating...' : 'Create Workspace'}
             </button>

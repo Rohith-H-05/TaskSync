@@ -37,7 +37,7 @@ function MainApp() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
       </div>
     );
   }
@@ -68,19 +68,19 @@ function MainApp() {
       <main className="flex-1 overflow-hidden">
         {wsLoading ? (
           <div className="flex items-center justify-center h-64 text-slate-400">
-            <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mr-2" />
-            <span>Loading workspace data...</span>
+            <Loader2 className="w-5 h-5 animate-spin text-indigo-400 mr-2" />
+            <span className="text-xs">Loading workspace data...</span>
           </div>
         ) : workspaces.length === 0 ? (
           /* Empty State: Create First Workspace */
           <div className="max-w-md mx-auto text-center py-20 px-4">
-            <h2 className="text-xl font-bold text-white mb-2">Welcome to TaskSync</h2>
-            <p className="text-sm text-slate-400 mb-6">
-              To get started, create your first team workspace where you can collaborate on boards in real time.
+            <h2 className="text-lg font-bold text-white mb-2">Welcome to TaskSync</h2>
+            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+              Create your first team workspace to start collaborating on boards with real-time subscriptions and fractional positioning.
             </p>
             <button
               onClick={() => setIsWorkspaceModalOpen(true)}
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-cyan-500/20 transition"
+              className="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-medium shadow-sm transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Create Workspace</span>
@@ -89,26 +89,26 @@ function MainApp() {
         ) : selectedBoardId && boardData?.board ? (
           /* Kanban Board View */
           <div className="flex flex-col h-full">
-            <div className="bg-slate-900/40 border-b border-slate-800/80 px-6 py-2 flex items-center space-x-3 text-xs text-slate-400">
+            <div className="bg-slate-900/60 border-b border-slate-800/80 px-4 sm:px-6 py-2 flex items-center space-x-2 text-xs text-slate-400">
               <button
                 onClick={() => setSelectedBoardId(null)}
-                className="flex items-center space-x-1 hover:text-cyan-400 transition"
+                className="flex items-center space-x-1 hover:text-indigo-300 transition cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Dashboard</span>
+                <span>Dashboard</span>
               </button>
-              <span>/</span>
-              <span className="text-slate-200 font-medium">{currentWorkspace?.name}</span>
-              <span>/</span>
-              <span className="text-cyan-400 font-medium">{boardData.board.title}</span>
+              <span className="text-slate-600">/</span>
+              <span className="text-slate-300 font-medium">{currentWorkspace?.name}</span>
+              <span className="text-slate-600">/</span>
+              <span className="text-indigo-400 font-medium">{boardData.board.title}</span>
             </div>
 
             <KanbanBoard board={boardData.board} canMutate={canMutate} />
           </div>
         ) : selectedBoardId && boardLoading ? (
           <div className="flex items-center justify-center h-64 text-slate-400">
-            <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mr-2" />
-            <span>Loading board columns and tasks...</span>
+            <Loader2 className="w-5 h-5 animate-spin text-indigo-400 mr-2" />
+            <span className="text-xs">Loading board columns and tasks...</span>
           </div>
         ) : currentWorkspace ? (
           /* Workspace Dashboard View */

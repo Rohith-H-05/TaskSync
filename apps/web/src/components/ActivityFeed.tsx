@@ -47,13 +47,13 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ boardId, isOpen, onC
   const getActionBadge = (action: string) => {
     switch (action) {
       case 'CREATED':
-        return 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60';
+        return 'bg-emerald-950/70 text-emerald-300 border-emerald-800/60';
       case 'MOVED':
-        return 'bg-cyan-950/80 text-cyan-400 border-cyan-800/60';
+        return 'bg-indigo-950/70 text-indigo-300 border-indigo-800/60';
       case 'DELETED':
-        return 'bg-red-950/80 text-red-400 border-red-800/60';
+        return 'bg-rose-950/70 text-rose-300 border-rose-800/60';
       default:
-        return 'bg-blue-950/80 text-blue-400 border-blue-800/60';
+        return 'bg-slate-800 text-slate-300 border-slate-700/60';
     }
   };
 
@@ -62,7 +62,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ boardId, isOpen, onC
       {/* Header */}
       <div className="p-4 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Activity className="w-4 h-4 text-cyan-400" />
+          <Activity className="w-4 h-4 text-indigo-400" />
           <h3 className="font-bold text-sm text-slate-100">Board Activity Feed</h3>
           <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
             {totalCount}
@@ -71,7 +71,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ boardId, isOpen, onC
         <div className="flex items-center space-x-2">
           <button
             onClick={() => refetch()}
-            className="text-xs text-slate-400 hover:text-cyan-400 p-1"
+            className="text-xs text-slate-400 hover:text-indigo-400 p-1"
             title="Refresh feed"
           >
             ↻
@@ -89,7 +89,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ boardId, isOpen, onC
       <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
         {loading && activities.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-slate-500 text-xs">
-            <Loader2 className="w-5 h-5 animate-spin text-cyan-400 mr-2" />
+            <Loader2 className="w-5 h-5 animate-spin text-indigo-400 mr-2" />
             <span>Loading activities...</span>
           </div>
         ) : activities.length === 0 ? (

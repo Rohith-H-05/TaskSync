@@ -342,24 +342,24 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ board, canMutate }) =>
         </div>
 
         {/* Search bar & Controls */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tasks..."
-              className="bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 w-48 sm:w-64"
+              placeholder="Filter tasks..."
+              className="bg-slate-800/90 border border-slate-700/80 rounded-lg pl-8 pr-3 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-44 sm:w-56"
             />
           </div>
 
           <button
             onClick={() => setIsActivityFeedOpen((prev) => !prev)}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition cursor-pointer ${
               isActivityFeedOpen
-                ? 'bg-cyan-950/80 border-cyan-800 text-cyan-400'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                ? 'bg-indigo-950/80 border-indigo-700 text-indigo-300'
+                : 'bg-slate-800/80 hover:bg-slate-750 text-slate-300 border-slate-700/80'
             }`}
             title="Toggle Activity Feed"
           >
@@ -370,9 +370,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ board, canMutate }) =>
           {canMutate && (
             <button
               onClick={() => setIsAddingColumn(true)}
-              className="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 transition"
+              className="flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg text-xs font-medium shadow-sm transition cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 text-cyan-400" />
+              <Plus className="w-3.5 h-3.5" />
               <span>Add Column</span>
             </button>
           )}
@@ -419,7 +419,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ board, canMutate }) =>
                       <button
                         type="submit"
                         disabled={!newColumnTitle.trim()}
-                        className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-medium transition disabled:opacity-50"
+                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-medium transition disabled:opacity-50 cursor-pointer"
                       >
                         Create
                       </button>

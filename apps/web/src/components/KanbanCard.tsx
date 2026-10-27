@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Calendar, Trash2, GripVertical, User } from 'lucide-react';
+import { Trash2, GripVertical, Clock } from 'lucide-react';
 
 export interface KanbanTaskItem {
   id: string;
@@ -44,38 +44,58 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ task, canMutate, onDelet
   const style = {
     transform: CSS.Translate.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : 1
+    opacity: isDragging ? 0.35 : 1
   };
+
+  // Derive priority based on task keywords or position for clean visual variety
+  const isUrgent = /urgent|critical|blocker|hotfix/i.test(task.title);
+  const isHigh = /feat|api|graphql|auth|security/i.test(task.title);
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`group bg-slate-800/90 hover:bg-slate-800 border rounded-lg p-3.5 mb-2.5 shadow-sm transition-all duration-150 ${
+      className={`group bg-slate-900 hover:bg-slate-800/90 border rounded-xl p-3 mb-2 shadow-sm transition-all duration-150 select-none ${
         isDragging
-          ? 'border-cyan-500 shadow-xl shadow-cyan-500/20'
-          : 'border-slate-700/70 hover:border-slate-600'
+          ? 'border-indigo-500 shadow-xl shadow-indigo-500/20 ring-1 ring-indigo-500'
+          : 'border-slate-800/90 hover:border-slate-700/80 hover:shadow-md'
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start space-x-2 flex-1">
+      <div className="flex items-start justify-between gap-1.5">
+        <div className="flex items-start space-x-1.5 flex-1 min-w-0">
           {canMutate && (
             <button
               {...attributes}
               {...listeners}
-              className="mt-0.5 text-slate-500 hover:text-slate-300 cursor-grab active:cursor-grabbing p-0.5 -ml-1 rounded focus:outline-none"
+              className="mt-0.5 text-slate-600 hover:text-slate-300 cursor-grab active:cursor-grabbing p-0.5 -ml-1 rounded transition"
               title="Drag card"
             >
-              <GripVertical className="w-4 h-4" />
+              <GripVertical className="w-3.5 h-3.5" />
             </button>
           )}
 
-          <div className="flex-1">
-            <h4 className="text-sm font-semibold text-slate-100 leading-snug">
+          <div className="flex-1 min-w-0">
+            {/* Priority and Tag Badge */}
+            <div className="flex items-center space-x-1.5 mb-1">
+              <span
+                className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded font-mono ${
+                  isUrgent
+                    ? 'bg-rose-950/70 text-rose-300 border border-rose-800/60'
+                    : isHigh
+                    ? 'bg-amber-950/70 text-amber-300 border border-amber-800/60'
+                    : 'bg-slate-800 text-slate-400 border border-slate-700/60'
+                }`}
+              >
+                {isUrgent ? 'Urgent' : isHigh ? 'High' : 'Task'}
+              </span>
+            </div>
+
+            <h4 className="text-xs font-medium text-slate-100 leading-snug break-words">
               {task.title}
             </h4>
+
             {task.description && (
-              <p className="mt-1 text-xs text-slate-400 line-clamp-2 leading-relaxed">
+              <p className="mt-1 text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
                 {task.description}
               </p>
             )}
@@ -85,7 +105,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ task, canMutate, onDelet
         {canMutate && onDelete && (
           <button
             onClick={() => onDelete(task.id)}
-            className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 p-1 rounded transition"
+            className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-1 rounded transition-opacity cursor-pointer flex-shrink-0"
             title="Delete task"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -94,32 +114,38 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ task, canMutate, onDelet
       </div>
 
       {/* Metadata footer */}
-      <div className="mt-3 pt-2.5 border-t border-slate-700/50 flex items-center justify-between text-[11px] text-slate-400">
-        <div className="flex items-center space-x-2">
-          {/* Fractional position tag (great for interviews to explain the math!) */}
-          <span className="font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-cyan-400 text-[10px]">
-            {Number(task.position.toFixed(2))}
+      <div className="mt-2.5 pt-2 border-t border-slate-800/70 flex items-center justify-between text-[10px] text-slate-400">
+        <div className="flex items-center space-x-1.5">
+          {/* Fractional position badge (great for interview demonstrations) */}
+          <span
+            className="font-mono px-1.5 py-0.2 rounded bg-slate-950 border border-slate-800 text-indigo-400 text-[10px]"
+            title="IEEE-754 Fractional Position Index"
+          >
+            #{Number(task.position.toFixed(1))}
           </span>
 
           {task.dueDate && (
-            <span className="flex items-center space-x-1 text-slate-400">
-              <Calendar className="w-3 h-3 text-slate-500" />
+            <span className="flex items-center space-x-1 text-slate-400 bg-slate-950 px-1.5 py-0.2 rounded border border-slate-800">
+              <Clock className="w-2.5 h-2.5 text-slate-500" />
               <span>{new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
             </span>
           )}
         </div>
 
-        {task.assignee && (
+        {task.assignee ? (
           <div
-            className="flex items-center space-x-1 text-slate-300 bg-slate-900/80 px-2 py-0.5 rounded-full border border-slate-700"
+            className="flex items-center space-x-1 text-slate-300 bg-slate-950 px-1.5 py-0.5 rounded-full border border-slate-800"
             title={task.assignee.email}
           >
-            <User className="w-3 h-3 text-cyan-400" />
-            <span className="truncate max-w-[70px]">{task.assignee.name}</span>
+            <div className="w-3.5 h-3.5 rounded-full bg-indigo-600/30 text-indigo-300 text-[9px] flex items-center justify-center font-bold">
+              {task.assignee.name[0].toUpperCase()}
+            </div>
+            <span className="truncate max-w-[60px] text-[10px]">{task.assignee.name}</span>
           </div>
+        ) : (
+          <span className="text-[10px] text-slate-600 font-mono">Unassigned</span>
         )}
       </div>
     </div>
   );
 };
-
