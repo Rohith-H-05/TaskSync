@@ -411,3 +411,4 @@ describe('Boards, Columns, Tasks & Fractional DND Tests', () => {
     expect(searchData.edges[0].node.title).toContain('Backend');
   });
 });
+

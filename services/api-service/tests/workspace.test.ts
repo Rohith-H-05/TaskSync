@@ -239,3 +239,4 @@ describe('Workspace & RBAC Integration Tests', () => {
     expect(res.body.errors[0].message).toContain('sole owner');
   });
 });
+

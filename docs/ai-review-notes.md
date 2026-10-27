@@ -44,5 +44,15 @@ This document records architectural critiques, edge cases, bugs, or design overs
 - **Resolution**: `createLoaders(prisma)` is called inside `buildContext` on every incoming GraphQL HTTP request and WebSocket connection tick. The DataLoader memoization cache lives strictly for the duration of a single GraphQL query execution tick and is immediately garbage collected.
 - **Status**: Implemented and verified in [src/graphql/context.ts](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/services/api-service/src/graphql/context.ts).
 
+---
+
+### Entry 005: Sensor Distance Constraint in @dnd-kit (Phase 3)
+- **Component**: Frontend Drag-and-Drop (`src/components/KanbanBoard.tsx`)
+- **Common Anti-Pattern**: Initializing `PointerSensor` with default parameters without an activation constraint.
+- **Problem Identified**: Without an activation constraint, any simple click event (such as clicking the delete button or clicking into a task to view details) triggers a drag start event, creating jitter and preventing normal button clicks or text selection.
+- **Resolution**: Configured `activationConstraint: { distance: 5 }` on the `PointerSensor`. The drag lifecycle only initiates if the user moves the pointer by more than 5 pixels while holding the mouse button down, preserving regular click events.
+- **Status**: Implemented in [src/components/KanbanBoard.tsx](file:///c:/Users/rohit/OneDrive/Documents/TaskSync/apps/web/src/components/KanbanBoard.tsx).
+
+
 
 
